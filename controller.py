@@ -1,4 +1,5 @@
 import time
+from controller_settings import ControllerSettings
 
 interval_types = ["even", "odd", "day_of_week"]
 
