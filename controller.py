@@ -205,6 +205,7 @@ class Controller(object):
         # 3.a If the program is expired, stop it
         # 3.b If a program is live, possibly advance its stations
         # 3.c If a new program is up, start it
+        # 4. Periodically persist settings and programs
 
         # 1. Build NOW
         n = make_now()
