@@ -6,6 +6,17 @@ import cerberus
 
 settings_base_dir = "D:\\toys\\controller"
 
+default_master = {'invert_rain_sensor': False,
+                  'has_rain_sensor': False,
+                  'time_format': '%H:%M:%S',
+                  'location': 'Garage',
+                  'format_version': 'v1.0',
+                  'timezone': 'SYSTEM',
+                  'stations_wired': 6,
+                  'controller_version': 'v1.4',
+                  'stations_available': 8,
+                  'date_format': '%Y-%m-%d'}
+
 def validate_station_count(field, value, error):
     if not value % 8 == 0:
         error(field, "Must be an even multiple of 8")
@@ -59,6 +70,10 @@ class ControllerSettings(object):
     def __init__(self, settings_base=settings_base_dir):
         self.settings_base = settings_base
         #Master settings file lives here
+        exist = os.path.exists(self.settings_base)
+        print self.settings_base, exist
+        if not exist:
+            os.makedirs(self.settings_base)
         self.master_file = os.path.join(self.settings_base, "master")
         self.master_validator = cerberus.Validator(master_settings_schema)
         self.master_settings = None
@@ -69,13 +84,17 @@ class ControllerSettings(object):
     def __get_program_paths(self):
         return glob.glob(self.programs_finder)
     def __load(self, filename, validator):
-        with open(filename) as f:
-            try:
-                settings = pickle.load(f)
-                if validator.validate(settings):
-                    return settings
-            except pickle.UnpicklingError:
+        try:
+            settings_file = open(filename)
+            settings = pickle.load(settings_file)
+            if validator.validate(settings):
+                return settings
+            else:
                 return None
+        except pickle.UnpicklingError:
+            return None
+        except IOError:
+            return None
 
     def __dump(self, filename, validator, settings):
         valid = validator.validate(settings)
@@ -84,7 +103,7 @@ class ControllerSettings(object):
             print validator.errors
             return False
 
-        f = open(filename, "w+")
+        f = open(filename, "w")
         if f is None:
             return False
         try:

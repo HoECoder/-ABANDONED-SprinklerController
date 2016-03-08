@@ -1,5 +1,5 @@
 import time
-from controller_settings import ControllerSettings
+from controller_settings import ControllerSettings, default_master
 
 interval_types = ["even", "odd", "day_of_week"]
 
@@ -94,10 +94,14 @@ def is_program_run_day(program, now):
     return False
 
 class Controller(object):
-    def __init__(self, programs):
-        self.programs = dict()
-        for program in programs:
-            self.programs[program["pid"]] = program
+    def __init__(self, settings = None):
+        self.programs = None
+        if settings is None:
+            self.settings = ControllerSettings()
+        if not self.settings.load_master():
+            self.settings.master_settings = default_master
+        self.settings.get_programs()
+        self.programs = self.settings.programs
     def prepare_programs(self):
         for program in self.programs.values():
             total_run_time = 0
@@ -235,15 +239,11 @@ if __name__ == "__main__":
         odd_even = "even"
     else:
         odd_even = "odd"
-    program_1["interval"]["type"] = odd_even
-    tod = now["seconds_from_midnight"] + 10
-    program_1["time_of_day"] = tod
     print "Toy Simulation"
     print "Toy Program"
-    pprint.pprint(program_1)
-    controller = Controller([program_1])
+    controller = Controller()
     controller.prepare_programs()
-    pprint.pprint(program_1)
+    print len(controller.programs.keys())
     i = 0
     while i < 90:
         print "Tick"
