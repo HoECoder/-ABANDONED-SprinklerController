@@ -102,6 +102,7 @@ class Controller(object):
             self.settings.master_settings = default_master
         self.settings.get_programs()
         self.programs = self.settings.programs
+        self.tickover = 0
     def prepare_programs(self):
         for program in self.programs.values():
             total_run_time = 0
@@ -230,6 +231,10 @@ class Controller(object):
             else: # 3.c Start up the program
                 print "Starting up program pid:", pid
                 self.start_program(pid, n)
+        # Push out settings
+        if self.tickover % 5 == 0:
+            self.settings.dump_master()
+        self.tickover = self.tickover + 1
 
 if __name__ == "__main__":
     import pprint
