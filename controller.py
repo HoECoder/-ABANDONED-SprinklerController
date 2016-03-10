@@ -33,6 +33,13 @@ program_1 = {"pid": 1,
                                     "in_station":False}],
              "total_run_time":0}
 
+def _monkey_program(program, time_delta=10):
+    n = make_now()
+    even_odd = {1 : "odd",
+                0 : "even"}[n["day"] % 2]
+    program["interval"] = {"type":"even"}
+    program["time_of_day"] = n["seconds_from_midnight"] + time_delta
+
 def make_now():
     # We build now (year,month,day,day_of_week,hour,minute,second,seconds_from_midnight)
     current_time = time.localtime()
@@ -248,11 +255,20 @@ if __name__ == "__main__":
     print "Toy Simulation"
     print "Toy Program"
     controller = Controller()
+    _monkey_program(controller.programs[1])
+    pprint.pprint(controller.programs[1])
+    _monkey_program(controller.programs[2], 55)
+    pprint.pprint(controller.programs[2])
+    _monkey_program(controller.programs[3], 105)
+    pprint.pprint(controller.programs[3])
     controller.prepare_programs()
     print len(controller.programs.keys())
     i = 0
-    while i < 90:
-        print "Tick"
-        controller.tick()
-        i = i+1
-        time.sleep(1)
+    try:
+        while True:
+            print "Tick"
+            controller.tick()
+            i = i+1
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print "CTRL-C caught, Shutdown"
