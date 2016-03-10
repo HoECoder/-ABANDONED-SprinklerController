@@ -79,7 +79,7 @@ class ControllerSettings(object):
         self.master_settings = None
         # programs are in the form of settings_base/program.*
         self.programs_finder = os.path.join(self.settings_base, "program.*")
-        self.programs_validator = cerberus.Validator(program_schema)
+        self.programs_validator = cerberus.Validator(program_schema,allow_unknown=True)
         self.programs = {}
     def __get_program_paths(self):
         return glob.glob(self.programs_finder)
