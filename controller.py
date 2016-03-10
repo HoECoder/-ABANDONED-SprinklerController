@@ -1,5 +1,6 @@
 import time
 from controller_settings import ControllerSettings, default_master
+from dispatchers import HAS_GPIO, GPIODispatcher, TestDispatcher
 
 interval_types = ["even", "odd", "day_of_week"]
 
@@ -101,7 +102,7 @@ def is_program_run_day(program, now):
     return False
 
 class Controller(object):
-    def __init__(self, settings = None):
+    def __init__(self, dispatcher_class=TestDispatcher, settings = None):
         self.programs = None
         if settings is None:
             self.settings = ControllerSettings()
@@ -110,6 +111,7 @@ class Controller(object):
         self.settings.get_programs()
         self.programs = self.settings.programs
         self.tickover = 0
+        self.dispatcher = dispatcher_class()
     def prepare_programs(self):
         for program in self.programs.values():
             total_run_time = 0
@@ -197,13 +199,22 @@ class Controller(object):
         self.dispatch_start(start_stations)
     def dispatch_full_stop(self):
         print "Dispatch FULL STOP"
-        pass # We would call dispatch_stop
+        bit_pattern = [0, 0, 0, 0, 0, 0, 0, 0]
+        self.dispatcher.write_pattern_to_register(bit_pattern)
     def dispatch_stop(self, stations):
         print "Stopping stations: ", stations
-        pass
+        bit_pattern = [0, 0, 0, 0, 0, 0, 0, 0]
+        for station in stations:
+            bit_pattern[station-1] = 0
+        if len(stations) > 0:
+            self.dispatcher.write_pattern_to_register(bit_pattern)
     def dispatch_start(self, stations):
         print "Starting stations: ", stations
-        pass
+        bit_pattern = [0, 0, 0, 0, 0, 0, 0, 0]
+        for station in stations:
+            bit_pattern[station-1] = 1
+        if len(stations) > 0:
+            self.dispatcher.write_pattern_to_register(bit_pattern)
     def tick(self):
         # This is our main function. Should be called from some sort of loop
         # 1. We build now (year,month,day,day_of_week,hour,minute,second,seconds_from_midnight)
