@@ -1,5 +1,9 @@
 import time
 import logging
+
+#Need a more complex logging
+logging.basicConfig(level=logging.INFO)
+
 from controller_settings import ControllerSettings, default_master
 from dispatchers import HAS_GPIO, GPIODispatcher, TestDispatcher
 
