@@ -1,4 +1,5 @@
 import time
+import logging
 from controller_settings import ControllerSettings, default_master
 from dispatchers import HAS_GPIO, GPIODispatcher, TestDispatcher
 
@@ -38,7 +39,7 @@ def _monkey_program(program, time_delta=10):
     n = make_now()
     even_odd = {1 : "odd",
                 0 : "even"}[n["day"] % 2]
-    program["interval"] = {"type":"even"}
+    program["interval"] = {"type" : even_odd}
     program["time_of_day"] = n["seconds_from_midnight"] + time_delta
 
 def make_now():
@@ -103,6 +104,7 @@ def is_program_run_day(program, now):
 
 class Controller(object):
     def __init__(self, dispatcher_class=TestDispatcher, settings = None):
+        self.logger = logging.getLogger(__name__)
         self.programs = None
         if settings is None:
             self.settings = ControllerSettings()
@@ -112,6 +114,9 @@ class Controller(object):
         self.programs = self.settings.programs
         self.tickover = 0
         self.dispatcher = dispatcher_class()
+        #Set full stop pattern
+        self.full_stop_pattern = [0 for x in xrange(self.settings.master_settings["stations_available"])]
+        self.master_pattern = list(self.full_stop_pattern)
     def prepare_programs(self):
         for program in self.programs.values():
             total_run_time = 0
@@ -149,14 +154,14 @@ class Controller(object):
         program.pop("expire", None)
         for station in program["station_duration"]:
             station["in_station"] = False
-        print "Stopping program"
+        self.logger.info("Stopping program: %d", program_id)
         self.dispatch_full_stop()
     def start_program(self, program_id, now):
         program = self.programs.get(program_id, None)
         if program is None:
             return
         program["in_program"] = True
-        print "Starting program"
+        self.logger.info("Starting program: %d", program_id)
         self.advance_program(program_id, now)
     def advance_program(self, program_id, now):
         program = self.programs.get(program_id, None)
@@ -168,7 +173,10 @@ class Controller(object):
         run_length = 0
         stop_stations = list()
         start_stations = list()
-        print "Checking advancement. Clock: %d, start: %d, elapsed: %d" % (clock, start_time, elapsed_time)
+        self.logger.debug("Checking advancement. Clock: %d, start: %d, elapsed: %d",
+                          clock,
+                          start_time,
+                          elapsed_time)
         # We go through all the stations in the program
         # We determine who needs to start and stop
         for station in program["station_duration"]:
@@ -176,45 +184,52 @@ class Controller(object):
             station_stop = station["end_time"]
             running = station["in_station"]
             stid = station["stid"]
-            print "\tStation stid:%d, start %d, stop %d, running %s" % (stid, station_start, station_stop, str(running))
+            self.logger.debug("Station stid:%d, start %d, stop %d, running %s",
+                              stid,
+                              station_start,
+                              station_stop,
+                              str(running))
             if  station_start <= clock and clock < station_stop:
                 if not running:
                     # Fire up the station
-                    print "\t\tFire up the station"
+                    self.logger.debug("Fire up the station: %d", stid)
                     start_stations.append(stid)
                     station["in_station"] = True
                 else:
-                    print "\t\tStation is already running"
+                    self.logger.debug("Station is already running: %d", stid)
                     #Otherwise we sit patiently. Latching relays
             else: #Station is old
                 if running: # We have to stop this guy first
                     stop_stations.append(stid)
                     station["in_station"] = False
-                    print "\t\tStopping station"
+                    self.logger.debug("Stopping station: %d", stid)
                 else:
-                    print "\t\tStation was not running"
+                    self.logger.debug("Station was not running: %d", stid)
         # Now we stop all stations first
         self.dispatch_stop(stop_stations)
         # Now we start all stations
         self.dispatch_start(start_stations)
     def dispatch_full_stop(self):
-        print "Dispatch FULL STOP"
-        bit_pattern = [0, 0, 0, 0, 0, 0, 0, 0]
-        self.dispatcher.write_pattern_to_register(bit_pattern)
+        self.logger.debug("Dispatch FULL STOP")
+        self.dispatcher.write_pattern_to_register(self.full_stop_pattern)
+        self.master_pattern = list(self.full_stop_pattern)
+        self.logger.info("Full stop complete")
     def dispatch_stop(self, stations):
-        print "Stopping stations: ", stations
-        bit_pattern = [0, 0, 0, 0, 0, 0, 0, 0]
+        self.logger.debug("Stopping stations: %s", str(stations))
         for station in stations:
-            bit_pattern[station-1] = 0
+            self.master_pattern[station-1] = 0
         if len(stations) > 0:
-            self.dispatcher.write_pattern_to_register(bit_pattern)
+            self.logger.debug("Pattern : %s", str(self.master_pattern))
+            self.dispatcher.write_pattern_to_register(self.master_pattern)
+        self.logger.info("Stopped stations: %s", str(stations))
     def dispatch_start(self, stations):
-        print "Starting stations: ", stations
-        bit_pattern = [0, 0, 0, 0, 0, 0, 0, 0]
+        self.logger.debug("Starting stations: %s", str(stations))
         for station in stations:
-            bit_pattern[station-1] = 1
+            self.master_pattern[station-1] = 1
         if len(stations) > 0:
-            self.dispatcher.write_pattern_to_register(bit_pattern)
+            self.logger.debug("Pattern : %s", str(self.master_pattern))
+            self.dispatcher.write_pattern_to_register(self.master_pattern)
+        self.logger.info("Started stations: %s", str(stations))
     def tick(self):
         # This is our main function. Should be called from some sort of loop
         # 1. We build now (year,month,day,day_of_week,hour,minute,second,seconds_from_midnight)
@@ -227,28 +242,28 @@ class Controller(object):
 
         # 1. Build NOW
         n = make_now()
-        print n
-        print "Getting programs"
+        self.logger.debug("Now: %s", str(n))
+        self.logger.debug("Getting programs")
         # 2. Get the list of programs
         running_programs = self.get_current_programs(n)
         # 3. Loop over the programs
         if len(running_programs) > 0:
-            print "Looping over programs"
+            self.logger.info("Checking programs")
         else:
-            print "No programs this tick"
+            self.logger.debug("No programs this tick")
         for program in running_programs:
             # 3.a Expire the expired programs
             expired = program.get("expire", False)
             in_program = program.get("in_program", None)
             pid = program["pid"]
             if expired:
-                print "Expiring pid:", pid
+                self.logger.info("Expiring progam: %d", pid)
                 self.stop_program(pid)
             elif in_program: # 3.b Possibly advance the program
-                print "Checking for advancement of pid:", pid
+                self.logger.debug("Checking for advancement of: %d", pid)
                 self.advance_program(pid, n)
             else: # 3.c Start up the program
-                print "Starting up program pid:", pid
+                self.logger.info("Starting up program: %d", pid)
                 self.start_program(pid, n)
         # Push out settings
         if self.tickover % 5 == 0:
@@ -277,9 +292,9 @@ if __name__ == "__main__":
     i = 0
     try:
         while True:
-            print "Tick"
+            print "Tick: %d" % i
             controller.tick()
             i = i+1
             time.sleep(1)
     except KeyboardInterrupt:
-        print "CTRL-C caught, Shutdown"
+        print "\nCTRL-C caught, Shutdown"
