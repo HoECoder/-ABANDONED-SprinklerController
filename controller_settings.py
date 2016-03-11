@@ -66,6 +66,37 @@ program_schema = {"pid" : {"type":"integer"},
                                                               "in_station": {"type":"boolean"}}}}}
 
 
+def _load(filename, validator):
+    try:
+        settings_file = open(filename)
+        settings = pickle.load(settings_file)
+        if validator.validate(settings):
+            return settings
+        else:
+            return None
+    except pickle.UnpicklingError:
+        return None
+    except IOError:
+        return None
+
+def _dump(filename, validator, settings):
+    valid = validator.validate(settings)
+    if not valid:
+        print "invalid"
+        print validator.errors
+        return False
+
+    f = open(filename, "w")
+    if f is None:
+        return False
+    try:
+        pickle.dump(settings, f)
+        f.flush()
+        f.close()
+        return True
+    except pickle.PicklingError:
+        return False
+
 class ControllerSettings(object):
     def __init__(self, settings_base=settings_base_dir):
         self.settings_base = settings_base
@@ -79,52 +110,23 @@ class ControllerSettings(object):
         self.master_settings = None
         # programs are in the form of settings_base/program.*
         self.programs_finder = os.path.join(self.settings_base, "program.*")
-        self.programs_validator = cerberus.Validator(program_schema,allow_unknown=True)
+        self.programs_validator = cerberus.Validator(program_schema, allow_unknown=True)
         self.programs = {}
     def __get_program_paths(self):
         return glob.glob(self.programs_finder)
-    def __load(self, filename, validator):
-        try:
-            settings_file = open(filename)
-            settings = pickle.load(settings_file)
-            if validator.validate(settings):
-                return settings
-            else:
-                return None
-        except pickle.UnpicklingError:
-            return None
-        except IOError:
-            return None
 
-    def __dump(self, filename, validator, settings):
-        valid = validator.validate(settings)
-        if not valid:
-            print "invalid"
-            print validator.errors
-            return False
-
-        f = open(filename, "w")
-        if f is None:
-            return False
-        try:
-            pickle.dump(settings, f)
-            f.flush()
-            f.close()
-            return True
-        except pickle.PicklingError:
-            return False
     def __dump_program(self, program):
         pid = program["pid"]
         program_name = "program.%d" % pid
         path = os.path.join(self.settings_base, program_name)
-        return self.__dump(path, self.programs_validator, program)
+        return _dump(path, self.programs_validator, program)
     def dump_all_programs(self):
         for program in self.programs.values():
             print program
             self.__dump_program(program)
     def dump_program(self, pid):
         program = self.programs.get(pid, None)
-        if None:
+        if program is None:
             return False
         return self.__dump_program(program)
     def delete_program(self, pid):
@@ -139,14 +141,14 @@ class ControllerSettings(object):
         except OSError:
             return False
     def load_master(self):
-        settings = self.__load(self.master_file, self.master_validator)
+        settings = _load(self.master_file, self.master_validator)
         if settings is None:
             return False
         self.master_settings = settings
         return True
     def dump_master(self):
         if hasattr(self, "master_settings"):
-            res = self.__dump(self.master_file, self.master_validator, self.master_settings)
+            res = _dump(self.master_file, self.master_validator, self.master_settings)
             return res
         else:
             return False
@@ -154,118 +156,8 @@ class ControllerSettings(object):
         self.programs = {}
         for pp in self.__get_program_paths():
             # We need a validation here that program.* lines up with the Program ID.
-            prog = self.__load(pp, self.programs_validator)
+            prog = _load(pp, self.programs_validator)
             if not prog is None:
                 pid = prog["pid"]
                 self.programs[pid] = prog
 
-
-if __name__ == "__main__":
-    master = {'invert_rain_sensor': False,
-              'has_rain_sensor': False,
-              'time_format': '%H:%M:%S',
-              'location': 'Garage',
-              'format_version': 'v1.0',
-              'timezone': 'SYSTEM',
-              'stations_wired': 6,
-              'controller_version': 'v1.4',
-              'stations_available': 8,
-              'date_format': '%Y-%m-%d'}
-
-    program_1 = {"pid": 1,
-                 "time_of_day" : 0,
-                 "interval" : {"type":"even"},
-                 "in_program" : False,
-                 "station_duration" : [{"stid":1,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":2,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":3,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":4,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":5,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":6,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":7,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":8,
-                                        "duration":5,
-                                        "in_station":False}],
-                 "total_run_time":0}
-    program_2 = {"pid": 2,
-                 "time_of_day" : 0,
-                 "interval" : {"type":"even"},
-                 "in_program" : False,
-                 "station_duration" : [{"stid":1,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":2,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":3,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":4,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":5,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":6,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":7,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":8,
-                                        "duration":5,
-                                        "in_station":False}],
-                 "total_run_time":0}
-    program_3 = {"pid": 3,
-                 "time_of_day" : 0,
-                 "interval" : {"type":"even"},
-                 "in_program" : False,
-                 "station_duration" : [{"stid":1,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":2,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":3,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":4,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":5,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":6,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":7,
-                                        "duration":5,
-                                        "in_station":False},
-                                       {"stid":8,
-                                        "duration":5,
-                                        "in_station":False}],
-                 "total_run_time":0}
-    
-    cs = ControllerSettings()
-    print cs.master_file
-    cs.master_settings = master
-    print cs.dump_master()
-    nm = cs.load_master()
-    program = {1: program_1, 2: program_2, 3: program_3}
-    cs.programs = program
-    cs.dump_all_programs()
-    cs.get_programs()

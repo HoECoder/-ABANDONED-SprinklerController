@@ -1,50 +1,9 @@
 import time
 import logging
-
-#Need a more complex logging
-logging.basicConfig(level=logging.INFO)
-
 from controller_settings import ControllerSettings, default_master
-from dispatchers import HAS_GPIO, GPIODispatcher, TestDispatcher
+from dispatchers import TestDispatcher
 
 interval_types = ["even", "odd", "day_of_week"]
-
-program_1 = {"pid": 1,
-             "time_of_day" : 0,
-             "interval" : {"type":"even"},
-             "in_program" : False,
-             "station_duration" : [{"stid":1,
-                                    "duration":5,
-                                    "in_station":False},
-                                   {"stid":2,
-                                    "duration":5,
-                                    "in_station":False},
-                                   {"stid":3,
-                                    "duration":5,
-                                    "in_station":False},
-                                   {"stid":4,
-                                    "duration":5,
-                                    "in_station":False},
-                                   {"stid":5,
-                                    "duration":5,
-                                    "in_station":False},
-                                   {"stid":6,
-                                    "duration":5,
-                                    "in_station":False},
-                                   {"stid":7,
-                                    "duration":5,
-                                    "in_station":False},
-                                   {"stid":8,
-                                    "duration":5,
-                                    "in_station":False}],
-             "total_run_time":0}
-
-def _monkey_program(program, time_delta=10):
-    n = make_now()
-    even_odd = {1 : "odd",
-                0 : "even"}[n["day"] % 2]
-    program["interval"] = {"type" : even_odd}
-    program["time_of_day"] = n["seconds_from_midnight"] + time_delta
 
 def make_now():
     # We build now (year,month,day,day_of_week,hour,minute,second,seconds_from_midnight)
@@ -72,10 +31,7 @@ def within_program_time(program, clock):
     start_time = program["time_of_day"]
     duration = program["total_run_time"]
     end_time = start_time+duration
-    if start_time <= clock and clock < end_time:
-        return True
-    else:
-        return False
+    return start_time <= clock and clock < end_time
 
 def is_program_run_day(program, now):
     # program_id is the program we would like to check
@@ -98,16 +54,13 @@ def is_program_run_day(program, now):
         run_days = interval.get("run_days", None)
         if run_days is None:
             return False # We should throw an error here too
-        if wd in run_days:
-            return True
-        else:
-            return False
+        return wd in run_days
     else:
         return False # should throw another error here
     return False
 
 class Controller(object):
-    def __init__(self, dispatcher_class=TestDispatcher, settings = None):
+    def __init__(self, dispatcher_class=TestDispatcher, settings=None):
         self.logger = logging.getLogger(__name__)
         self.programs = None
         if settings is None:
@@ -174,7 +127,7 @@ class Controller(object):
         clock = now["seconds_from_midnight"]
         start_time = program["time_of_day"]
         elapsed_time = clock - start_time
-        run_length = 0
+        #run_length = 0
         stop_stations = list()
         start_stations = list()
         self.logger.debug("Checking advancement. Clock: %d, start: %d, elapsed: %d",
@@ -273,32 +226,3 @@ class Controller(object):
         if self.tickover % 5 == 0:
             self.settings.dump_master()
         self.tickover = self.tickover + 1
-
-if __name__ == "__main__":
-    import pprint
-    now = make_now()
-    odd_even = now["day"] % 2 == 0
-    if odd_even:
-        odd_even = "even"
-    else:
-        odd_even = "odd"
-    print "Toy Simulation"
-    print "Toy Program"
-    controller = Controller()
-    _monkey_program(controller.programs[1])
-    pprint.pprint(controller.programs[1])
-    _monkey_program(controller.programs[2], 55)
-    pprint.pprint(controller.programs[2])
-    _monkey_program(controller.programs[3], 105)
-    pprint.pprint(controller.programs[3])
-    controller.prepare_programs()
-    print len(controller.programs.keys())
-    i = 0
-    try:
-        while True:
-            print "Tick: %d" % i
-            controller.tick()
-            i = i+1
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print "\nCTRL-C caught, Shutdown"
