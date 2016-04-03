@@ -5,17 +5,72 @@ import os.path
 import cerberus
 
 settings_base_dir = "D:\\toys\\controller"
+master_name = "master.cfg"
 
-default_master = {'invert_rain_sensor': False,
-                  'has_rain_sensor': False,
-                  'time_format': '%H:%M:%S',
-                  'location': 'Garage',
-                  'format_version': 'v1.0',
-                  'timezone': 'SYSTEM',
+main_section = "Main"
+station_settings = "Station Settings"
+station_section = "Station %d"
+ospi_version_key = 'OSPi Version'
+tz_key = 'Time Zone'
+sys_version_key = 'System Version'
+date_format_key = 'Date Format'
+time_format_key = 'Time Format'
+location_key = 'Location'
+rain_sensor_key = 'Rain Sensor'
+invert_rain_sensor_key = 'Invert Rain Sensor'
+stations_avail_key = 'Stations Available'
+station_section_key = 'Station %d'
+station_name_key = 'Name'
+wired_key = 'Wired'
+ignore_rain_key = 'Ignore Rain Sensor'
+need_master_key = 'Need Master'
+
+default_station_dict = {1:{'Name':'Station 1',
+                           'Wired':True,
+                           'Ignore Rain Sensor':False,
+                           'Need Master':False},
+                        2:{'Name':'Station 2',
+                           'Wired':True,
+                           'Ignore Rain Sensor':False,
+                           'Need Master':False},
+                        3:{'Name':'Station 3',
+                           'Wired':True,
+                           'Ignore Rain Sensor':False,
+                           'Need Master':False},
+                        4:{'Name':'Station 4',
+                           'Wired':True,
+                           'Ignore Rain Sensor':False,
+                           'Need Master':False},
+                        5:{'Name':'Station 5',
+                           'Wired':True,
+                           'Ignore Rain Sensor':False,
+                           'Need Master':False},
+                        6:{'Name':'Station 6',
+                           'Wired':True,
+                           'Ignore Rain Sensor':False,
+                           'Need Master':False},
+                        7:{'Name':'Station 7',
+                           'Wired':False,
+                           'Ignore Rain Sensor':False,
+                           'Need Master':False},
+                        8:{'Name':'Station 8',
+                           'Wired':False,
+                           'Ignore Rain Sensor':False,
+                           'Need Master':False}}
+
+default_master = {'Invert Rain Sensor': False,
+                  'Rain Sensor': False,
+                  'Time Format': '%H:%M:%S',
+                  'Location': 'Garage',
+                  'System Version': 'v1.0',
+                  'Time Zone': 'SYSTEM',
                   'stations_wired': 6,
-                  'controller_version': 'v1.4',
-                  'stations_available': 8,
-                  'date_format': '%Y-%m-%d'}
+                  'OSPi Version': 'v1.4',
+                  'Date Format': '%Y-%m-%d',
+                  '"Station Settings' : {'Stations Available':8,
+                                         'station list': default_station_dict}}
+
+
 
 def validate_station_count(field, value, error):
     if not value % 8 == 0:
@@ -106,7 +161,7 @@ class ControllerSettings(object):
         if not exist:
             os.makedirs(self.settings_base)
         self.master_file = os.path.join(self.settings_base, "master")
-        self.master_validator = cerberus.Validator(master_settings_schema)
+        #self.master_validator = cerberus.Validator(master_settings_schema)
         self.master_settings = None
         # programs are in the form of settings_base/program.*
         self.programs_finder = os.path.join(self.settings_base, "program.*")
