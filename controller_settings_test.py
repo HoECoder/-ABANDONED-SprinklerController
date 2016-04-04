@@ -1,16 +1,9 @@
-from controller_settings import ControllerSettings
+from collections import OrderedDict
+from controller_settings import ControllerSettings,make_test_settings
 
 if __name__ == "__main__":
-    Master = {'invert_rain_sensor': False,
-              'has_rain_sensor': False,
-              'time_format': '%H:%M:%S',
-              'location': 'Garage',
-              'format_version': 'v1.0',
-              'timezone': 'SYSTEM',
-              'stations_wired': 6,
-              'controller_version': 'v1.4',
-              'stations_available': 8,
-              'date_format': '%Y-%m-%d'}
+
+    Master = make_test_settings()
 
     program_1 = {"pid": 1,
                  "time_of_day" : 0,
