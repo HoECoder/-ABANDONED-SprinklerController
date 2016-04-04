@@ -10,116 +10,116 @@ import cerberus
 settings_base_dir = "D:\\toys\\controller"
 master_name = "master.cfg"
 
-main_section = 'Main'
-station_settings_key = 'Station Settings'
-ospi_version_key = 'ospi version'
-station_section_key = 'Station %d'
-tz_key = 'time zone'
-sys_version_key = 'system version'
-date_format_key = 'date format'
-time_format_key = 'time format'
-location_key = 'location'
-rain_sensor_key = 'rain sensor'
-invert_rain_sensor_key = 'invert rain sensor'
-stations_avail_key = 'stations available'
-station_name_key = 'name'
-wired_key = 'wired'
-ignore_rain_key = 'ignore rain sensor'
-need_master_key = 'need master'
-station_list_key = 'station list'
+MAIN_SECTION = 'Main'
+STATION_SETTINGS_KEY = 'Station Settings'
+OSPI_VERSION_KEY = 'ospi version'
+STATION_SECTION_KEY = 'Station %d'
+TZ_KEY = 'time zone'
+SYS_VERSION_KEY = 'system version'
+DATE_FORMAT_KEY = 'date format'
+TIME_FORMAT_KEY = 'time format'
+LOCATION_KEY = 'location'
+RAIN_SENSOR_KEY = 'rain sensor'
+INVERT_RAIN_SENSOR_KEY = 'invert rain sensor'
+STATIONS_AVAIL_KEY = 'stations available'
+STATION_NAME_KEY = 'name'
+WIRED_KEY = 'wired'
+IGNORE_RAIN_KEY = 'ignore rain sensor'
+NEED_MASTER_KEY = 'need master'
+STATION_LIST_KEY = 'station list'
 
 __station_template = OrderedDict()
-__station_template[station_name_key] = ''
-__station_template[wired_key] = True
-__station_template[ignore_rain_key] = False
-__station_template[need_master_key] = False
+__station_template[STATION_NAME_KEY] = ''
+__station_template[WIRED_KEY] = True
+__station_template[IGNORE_RAIN_KEY] = False
+__station_template[NEED_MASTER_KEY] = False
 
 default_station_dict = OrderedDict()
 __temp = copy.deepcopy(__station_template)
-__temp[station_name_key] = 'Station 1'
+__temp[STATION_NAME_KEY] = 'Station 1'
 default_station_dict[1] = __temp
 __temp = copy.deepcopy(__station_template)
-__temp[station_name_key] = 'Station 2'
+__temp[STATION_NAME_KEY] = 'Station 2'
 default_station_dict[2] = __temp
 __temp = copy.deepcopy(__station_template)
-__temp[station_name_key] = 'Station 3'
+__temp[STATION_NAME_KEY] = 'Station 3'
 default_station_dict[3] = __temp
 __temp = copy.deepcopy(__station_template)
-__temp[station_name_key] = 'Station 4'
+__temp[STATION_NAME_KEY] = 'Station 4'
 default_station_dict[4] = __temp
 __temp = copy.deepcopy(__station_template)
-__temp[station_name_key] = 'Station 5'
+__temp[STATION_NAME_KEY] = 'Station 5'
 default_station_dict[5] = __temp
 __temp = copy.deepcopy(__station_template)
-__temp[station_name_key] = 'Station 6'
+__temp[STATION_NAME_KEY] = 'Station 6'
 default_station_dict[6] = __temp
 __temp = copy.deepcopy(__station_template)
-__temp[station_name_key] = 'Station 7'
-__temp[wired_key] = False
+__temp[STATION_NAME_KEY] = 'Station 7'
+__temp[WIRED_KEY] = False
 default_station_dict[7] = __temp
 __temp = copy.deepcopy(__station_template)
-__temp[station_name_key] = 'Station 8'
-__temp[wired_key] = False
+__temp[STATION_NAME_KEY] = 'Station 8'
+__temp[WIRED_KEY] = False
 default_station_dict[8] = __temp
 
 default_master = OrderedDict()
-default_master[sys_version_key] = 'v1.0'
-default_master[ospi_version_key] = 'v1.4'
-default_master[time_format_key] = '%H:%M:%S'
-default_master[date_format_key] = '%Y-%m-%d'
-default_master[tz_key] = 'SYSTEM'
-default_master[location_key] = 'Garage'
-default_master[invert_rain_sensor_key] = False
-default_master[rain_sensor_key] = False
-default_master[stations_avail_key] = 8
-default_master[station_list_key] = default_station_dict
+default_master[SYS_VERSION_KEY] = 'v1.0'
+default_master[OSPI_VERSION_KEY] = 'v1.4'
+default_master[TIME_FORMAT_KEY] = '%H:%M:%S'
+default_master[DATE_FORMAT_KEY] = '%Y-%m-%d'
+default_master[TZ_KEY] = 'SYSTEM'
+default_master[LOCATION_KEY] = 'Garage'
+default_master[INVERT_RAIN_SENSOR_KEY] = False
+default_master[RAIN_SENSOR_KEY] = False
+default_master[STATIONS_AVAIL_KEY] = 8
+default_master[STATION_LIST_KEY] = default_station_dict
 
 def make_test_settings():
     __station_template = OrderedDict()
-    __station_template[station_name_key] = ''
-    __station_template[wired_key] = True
-    __station_template[ignore_rain_key] = False
-    __station_template[need_master_key] = False
+    __station_template[STATION_NAME_KEY] = ''
+    __station_template[WIRED_KEY] = True
+    __station_template[IGNORE_RAIN_KEY] = False
+    __station_template[NEED_MASTER_KEY] = False
 
     Station_Dict = OrderedDict()
     __temp = copy.deepcopy(__station_template)
-    __temp[station_name_key] = 'Station 1'
+    __temp[STATION_NAME_KEY] = 'Station 1'
     Station_Dict[1] = __temp
     __temp = copy.deepcopy(__station_template)
-    __temp[station_name_key] = 'Station 2'
+    __temp[STATION_NAME_KEY] = 'Station 2'
     Station_Dict[2] = __temp
     __temp = copy.deepcopy(__station_template)
-    __temp[station_name_key] = 'Station 3'
+    __temp[STATION_NAME_KEY] = 'Station 3'
     Station_Dict[3] = __temp
     __temp = copy.deepcopy(__station_template)
-    __temp[station_name_key] = 'Station 4'
+    __temp[STATION_NAME_KEY] = 'Station 4'
     Station_Dict[4] = __temp
     __temp = copy.deepcopy(__station_template)
-    __temp[station_name_key] = 'Station 5'
+    __temp[STATION_NAME_KEY] = 'Station 5'
     Station_Dict[5] = __temp
     __temp = copy.deepcopy(__station_template)
-    __temp[station_name_key] = 'Station 6'
+    __temp[STATION_NAME_KEY] = 'Station 6'
     Station_Dict[6] = __temp
     __temp = copy.deepcopy(__station_template)
-    __temp[station_name_key] = 'Station 7'
-    __temp[wired_key] = False
+    __temp[STATION_NAME_KEY] = 'Station 7'
+    __temp[WIRED_KEY] = False
     Station_Dict[7] = __temp
     __temp = copy.deepcopy(__station_template)
-    __temp[station_name_key] = 'Station 8'
-    __temp[wired_key] = False
+    __temp[STATION_NAME_KEY] = 'Station 8'
+    __temp[WIRED_KEY] = False
     Station_Dict[8] = __temp
 
     Master = OrderedDict()
-    Master[sys_version_key] = 'v1.0'
-    Master[ospi_version_key] = 'v1.4'
-    Master[time_format_key] = '%H:%M:%S'
-    Master[date_format_key] = '%Y-%m-%d'
-    Master[tz_key] = 'SYSTEM'
-    Master[location_key] = 'Garage'
-    Master[invert_rain_sensor_key] = False
-    Master[rain_sensor_key] = False
-    Master[stations_avail_key] = 8
-    Master[station_list_key] = Station_Dict
+    Master[SYS_VERSION_KEY] = 'v1.0'
+    Master[OSPI_VERSION_KEY] = 'v1.4'
+    Master[TIME_FORMAT_KEY] = '%H:%M:%S'
+    Master[DATE_FORMAT_KEY] = '%Y-%m-%d'
+    Master[TZ_KEY] = 'SYSTEM'
+    Master[LOCATION_KEY] = 'Garage'
+    Master[INVERT_RAIN_SENSOR_KEY] = False
+    Master[RAIN_SENSOR_KEY] = False
+    Master[STATIONS_AVAIL_KEY] = 8
+    Master[STATION_LIST_KEY] = Station_Dict
     return Master
 
 interval_types = ["even", "odd", "day_of_week"]
@@ -234,14 +234,14 @@ class ControllerSettings(object):
             return False
         master = OrderedDict()
         sections = config.sections()
-        main_opts = config.options(main_section)
+        main_opts = config.options(MAIN_SECTION)
         #Load the main options
         for opt in main_opts:
-            master[opt] = config.get(main_section, opt)
-        sections.remove(main_section)
+            master[opt] = config.get(MAIN_SECTION, opt)
+        sections.remove(MAIN_SECTION)
         # Load the station info
         station_list = OrderedDict()
-        master[station_list_key] = station_list
+        master[STATION_LIST_KEY] = station_list
         for section in sections:
             station_id = int(section.split(' ')[1])
             options = config.options(section)
@@ -256,14 +256,14 @@ class ControllerSettings(object):
             # Don't directly modify the master settings dict
             conf = copy.deepcopy(self.master_settings)
             config = ConfigParser.ConfigParser()
-            station_list = conf.pop(station_list_key, None)
+            station_list = conf.pop(STATION_LIST_KEY, None)
             # Write main settings
-            config.add_section(main_section)
+            config.add_section(MAIN_SECTION)
             for key, val in conf.items():
-                config.set(main_section, key, val)
+                config.set(MAIN_SECTION, key, val)
             # Write out the individual station settings
             for key, val in station_list.items():
-                header = station_section_key % key
+                header = STATION_SECTION_KEY % key
                 config.add_section(header)
                 for k2, v2 in val.items():
                     config.set(header, k2, v2)
