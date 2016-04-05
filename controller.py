@@ -1,6 +1,6 @@
 import time
 import logging
-from controller_settings import ControllerSettings, default_master
+from controller_settings import ControllerSettings, default_master, STATIONS_AVAIL_KEY
 from dispatchers import TestDispatcher
 
 interval_types = ["even", "odd", "day_of_week"]
@@ -72,7 +72,7 @@ class Controller(object):
         self.tickover = 0
         self.dispatcher = dispatcher_class()
         #Set full stop pattern
-        self.full_stop_pattern = [0 for x in xrange(self.settings.master_settings["stations_available"])]
+        self.full_stop_pattern = [0 for x in xrange(self.settings.master_settings[STATIONS_AVAIL_KEY])]
         self.master_pattern = list(self.full_stop_pattern)
     def prepare_programs(self):
         for program in self.programs.values():

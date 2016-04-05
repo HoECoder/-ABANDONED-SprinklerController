@@ -1,4 +1,3 @@
-import pickle
 import json
 import glob
 import os
@@ -28,52 +27,6 @@ WIRED_KEY = 'wired'
 IGNORE_RAIN_KEY = 'ignore rain sensor'
 NEED_MASTER_KEY = 'need master'
 STATION_LIST_KEY = 'station list'
-
-__station_template = OrderedDict()
-__station_template[STATION_NAME_KEY] = ''
-__station_template[WIRED_KEY] = True
-__station_template[IGNORE_RAIN_KEY] = False
-__station_template[NEED_MASTER_KEY] = False
-
-default_station_dict = OrderedDict()
-__temp = copy.deepcopy(__station_template)
-__temp[STATION_NAME_KEY] = 'Station 1'
-default_station_dict[1] = __temp
-__temp = copy.deepcopy(__station_template)
-__temp[STATION_NAME_KEY] = 'Station 2'
-default_station_dict[2] = __temp
-__temp = copy.deepcopy(__station_template)
-__temp[STATION_NAME_KEY] = 'Station 3'
-default_station_dict[3] = __temp
-__temp = copy.deepcopy(__station_template)
-__temp[STATION_NAME_KEY] = 'Station 4'
-default_station_dict[4] = __temp
-__temp = copy.deepcopy(__station_template)
-__temp[STATION_NAME_KEY] = 'Station 5'
-default_station_dict[5] = __temp
-__temp = copy.deepcopy(__station_template)
-__temp[STATION_NAME_KEY] = 'Station 6'
-default_station_dict[6] = __temp
-__temp = copy.deepcopy(__station_template)
-__temp[STATION_NAME_KEY] = 'Station 7'
-__temp[WIRED_KEY] = False
-default_station_dict[7] = __temp
-__temp = copy.deepcopy(__station_template)
-__temp[STATION_NAME_KEY] = 'Station 8'
-__temp[WIRED_KEY] = False
-default_station_dict[8] = __temp
-
-default_master = OrderedDict()
-default_master[SYS_VERSION_KEY] = 'v1.0'
-default_master[OSPI_VERSION_KEY] = 'v1.4'
-default_master[TIME_FORMAT_KEY] = '%H:%M:%S'
-default_master[DATE_FORMAT_KEY] = '%Y-%m-%d'
-default_master[TZ_KEY] = 'SYSTEM'
-default_master[LOCATION_KEY] = 'Garage'
-default_master[INVERT_RAIN_SENSOR_KEY] = False
-default_master[RAIN_SENSOR_KEY] = False
-default_master[STATIONS_AVAIL_KEY] = 8
-default_master[STATION_LIST_KEY] = default_station_dict
 
 def make_test_settings():
     __station_template = OrderedDict()
@@ -122,6 +75,9 @@ def make_test_settings():
     Master[STATIONS_AVAIL_KEY] = 8
     Master[STATION_LIST_KEY] = Station_Dict
     return Master
+
+default_master = make_test_settings()
+default_station_dict = default_master[STATION_LIST_KEY]
 
 interval_types = ["even", "odd", "day_of_week"]
 interval_types_s = str(interval_types)
@@ -177,7 +133,7 @@ def _dump(filename, validator, settings):
     if f is None:
         return False
     try:
-        json.dump(settings, f, indent = 4)
+        json.dump(settings, f, indent=4)
         f.flush()
         f.close()
         return True
@@ -248,6 +204,7 @@ class ControllerSettings(object):
             for option in options:
                 __od[option] = config.get(section, option)
             station_list[station_id] = __od
+        master[STATIONS_AVAIL_KEY] = int(master[STATIONS_AVAIL_KEY])
         self.master_settings = master
         return True
     def dump_master(self):
