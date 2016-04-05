@@ -1,4 +1,5 @@
 import pickle
+import json
 import glob
 import os
 import os.path
@@ -157,13 +158,11 @@ program_schema = {"pid" : {"type":"integer"},
 def _load(filename, validator):
     try:
         settings_file = open(filename)
-        settings = pickle.load(settings_file)
+        settings = json.load(settings_file)
         if validator.validate(settings):
             return settings
         else:
             return None
-    except pickle.UnpicklingError:
-        return None
     except IOError:
         return None
 
@@ -178,11 +177,11 @@ def _dump(filename, validator, settings):
     if f is None:
         return False
     try:
-        pickle.dump(settings, f)
+        json.dump(settings, f, indent = 4)
         f.flush()
         f.close()
         return True
-    except pickle.PicklingError:
+    except IOError:
         return False
 
 class ControllerSettings(object):
@@ -190,7 +189,7 @@ class ControllerSettings(object):
         self.settings_base = settings_base
         #Master settings file lives here
         exist = os.path.exists(self.settings_base)
-        print self.settings_base, exist
+        #print self.settings_base, exist
         if not exist:
             os.makedirs(self.settings_base)
         self.master_file = os.path.join(self.settings_base, master_name)
@@ -209,7 +208,7 @@ class ControllerSettings(object):
         return _dump(path, self.programs_validator, program)
     def dump_all_programs(self):
         for program in self.programs.values():
-            print program
+            #print program
             self.__dump_program(program)
     def dump_program(self, pid):
         program = self.programs.get(pid, None)

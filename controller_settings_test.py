@@ -94,9 +94,9 @@ if __name__ == "__main__":
                  "total_run_time":0}
 
     cs = ControllerSettings()
-    print cs.master_file
+    #print cs.master_file
     cs.master_settings = Master
-    print cs.dump_master()
+    #print cs.dump_master()
     nm = cs.load_master()
     program = {1: program_1, 2: program_2, 3: program_3}
     cs.programs = program
