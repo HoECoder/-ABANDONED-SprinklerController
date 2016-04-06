@@ -1,9 +1,15 @@
 import time
 import logging
+import logging.handlers
 import pprint
 
 #Need a more complex logging
 logging.basicConfig(level=logging.DEBUG)
+
+fh = logging.handlers.RotatingFileHandler("D:\\toys\\controller\\controller.log",
+                                                            maxBytes=1024*1024,
+                                                            backupCount=15)
+logging.getLogger('').addHandler(fh)
 
 from controller import Controller, make_now
 
