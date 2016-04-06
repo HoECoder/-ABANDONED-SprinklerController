@@ -28,6 +28,13 @@ IGNORE_RAIN_KEY = 'ignore rain sensor'
 NEED_MASTER_KEY = 'need master'
 STATION_LIST_KEY = 'station list'
 
+boolean_conf_keys = [RAIN_SENSOR_KEY,
+                     INVERT_RAIN_SENSOR_KEY,
+                     WIRED_KEY,
+                     IGNORE_RAIN_KEY,
+                     NEED_MASTER_KEY]
+                       
+
 def make_test_settings():
     __station_template = OrderedDict()
     __station_template[STATION_NAME_KEY] = ''
@@ -202,7 +209,10 @@ class ControllerSettings(object):
             options = config.options(section)
             __od = OrderedDict()
             for option in options:
-                __od[option] = config.get(section, option)
+                if option in boolean_conf_keys:
+                    __od[option] = config.getboolean(section,option)
+                else:
+                    __od[option] = config.get(section, option)
             station_list[station_id] = __od
         master[STATIONS_AVAIL_KEY] = int(master[STATIONS_AVAIL_KEY])
         self.master_settings = master
