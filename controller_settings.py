@@ -7,7 +7,10 @@ from collections import OrderedDict
 import ConfigParser
 import cerberus
 
-settings_base_dir = "D:\\toys\\controller"
+if os.name == "nt":
+    settings_base_dir = "D:\\toys\\controller"
+else:
+    settings_base_dir = os.path.expanduser("~/.controller")
 master_name = "master.cfg"
 
 MAIN_SECTION = 'Main'
@@ -33,6 +36,7 @@ boolean_conf_keys = [RAIN_SENSOR_KEY,
                      WIRED_KEY,
                      IGNORE_RAIN_KEY,
                      NEED_MASTER_KEY]
+int_conf_keys = [STATIONS_AVAIL_KEY]
                        
 
 def make_test_settings():
@@ -211,6 +215,8 @@ class ControllerSettings(object):
             for option in options:
                 if option in boolean_conf_keys:
                     __od[option] = config.getboolean(section,option)
+                elif option in int_conf_keys:
+                    __od[option] = config.getint(section,option)
                 else:
                     __od[option] = config.get(section, option)
             station_list[station_id] = __od

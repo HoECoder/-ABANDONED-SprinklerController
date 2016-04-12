@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from collections import OrderedDict
 from controller_settings import ControllerSettings,make_test_settings
 
@@ -102,3 +103,4 @@ if __name__ == "__main__":
     cs.programs = program
     cs.dump_all_programs()
     cs.get_programs()
+    cs.dump_master()
