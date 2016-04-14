@@ -12,11 +12,11 @@ logging.basicConfig(level=logging.DEBUG)
 if os.name == "nt":
     log_filename = "D:\\toys\\controller\\controller.log"
 else:
-    log_filename = os.path.expanduser("~./controller/controller.log")
+    log_filename = os.path.expanduser("~/.controller/controller.log")
 
 fh = logging.handlers.RotatingFileHandler(log_filename,
-                                                            maxBytes=1024*1024,
-                                                            backupCount=15)
+                                          maxBytes=1024*1024,
+                                          backupCount=15)
 logging.getLogger('').addHandler(fh)
 
 from controller import Controller, make_now
