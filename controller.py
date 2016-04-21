@@ -1,6 +1,6 @@
 import time
 import logging
-from controller_settings import ControllerSettings, default_master, STATIONS_AVAIL_KEY
+import controller_settings
 from dispatchers import TestDispatcher
 
 interval_types = ["even", "odd", "day_of_week"]
@@ -64,15 +64,16 @@ class Controller(object):
         self.logger = logging.getLogger(__name__)
         self.programs = None
         if settings is None:
-            self.settings = ControllerSettings()
+            self.settings = controller_settings.ControllerSettings()
         if not self.settings.load_master():
-            self.settings.master_settings = default_master
+            self.settings.master_settings = controller_settings.default_master
         self.settings.get_programs()
         self.programs = self.settings.programs
         self.tickover = 0
         self.dispatcher = dispatcher_class()
         #Set full stop pattern
-        self.full_stop_pattern = [0 for x in xrange(self.settings.master_settings[STATIONS_AVAIL_KEY])]
+        total_stations = self.settings.master_settings[controller_settings.STATIONS_AVAIL_KEY]
+        self.full_stop_pattern = [0 for x in xrange(total_stations)]
         self.master_pattern = list(self.full_stop_pattern)
     def prepare_programs(self):
         for program in self.programs.values():
@@ -120,6 +121,15 @@ class Controller(object):
         program["in_program"] = True
         self.logger.info("Starting program: %d", program_id)
         self.advance_program(program_id, now)
+    def is_station_available(self, stid):
+        master = self.settings.master_settings
+        station_list = master[controller_settings.STATION_LIST_KEY]
+        station = station_list.get(stid, None)
+        if station is None:
+            return False
+        wired = station[controller_settings.WIRED_KEY] 
+        self.logger.debug("Station %d is wired: %s", stid, str(wired))
+        return wired
     def advance_program(self, program_id, now):
         program = self.programs.get(program_id, None)
         if program is None:
@@ -182,7 +192,11 @@ class Controller(object):
     def dispatch_start(self, stations):
         self.logger.debug("Starting stations: %s", str(stations))
         for station in stations:
-            self.master_pattern[station-1] = 1
+            st_avail = self.is_station_available(station)
+            self.logger.debug("Station %d is enabled: %s",station,str(st_avail))
+            if st_avail:
+                self.logger.debug("Station %d (%d) on",station,station-1)
+                self.master_pattern[station-1] = 1
         if len(stations) > 0:
             self.logger.debug("Pattern : %s", str(self.master_pattern))
             self.dispatcher.write_pattern_to_register(self.master_pattern)
