@@ -1,4 +1,5 @@
 import time
+from copy import deepcopy
 import logging
 import controller_settings
 from dispatchers import TestDispatcher
@@ -59,6 +60,18 @@ def is_program_run_day(program, now):
         return False # should throw another error here
     return False
 
+def _prepare_program(program):
+    total_run_time = 0
+    for sd in program["station_duration"]:
+        tod = program["time_of_day"]
+        station_run = sd["duration"]
+        sd["start_time"] = total_run_time + tod
+        total_run_time = total_run_time + station_run
+        sd["end_time"] = total_run_time + tod
+        #sd["running"] = False
+    program["total_run_time"] = total_run_time
+    return program
+    
 class Controller(object):
     def __init__(self, dispatcher_class=TestDispatcher, settings=None):
         self.logger = logging.getLogger(__name__)
@@ -75,17 +88,10 @@ class Controller(object):
         total_stations = self.settings.master_settings[controller_settings.STATIONS_AVAIL_KEY]
         self.full_stop_pattern = [0 for x in xrange(total_stations)]
         self.master_pattern = list(self.full_stop_pattern)
+        self.one_shot_program = None
     def prepare_programs(self):
         for program in self.programs.values():
-            total_run_time = 0
-            for sd in program["station_duration"]:
-                tod = program["time_of_day"]
-                station_run = sd["duration"]
-                sd["start_time"] = total_run_time + tod
-                total_run_time = total_run_time + station_run
-                sd["end_time"] = total_run_time + tod
-                #sd["running"] = False
-            program["total_run_time"] = total_run_time
+            _prepare_program(program)
 
     def get_current_programs(self, now):
         running_programs = list()
@@ -102,9 +108,16 @@ class Controller(object):
                 if is_program_run_day(program, now): # We look if it is a run day
                     if within_program_time(program, clock): # We should run this program
                         running_programs.append(program)
+        # We allow users to run a single program once
+        if not self.one_shot_program is None:
+            running_program.append(self.one_shot_program)
         return running_programs
 
     def stop_program(self, program_id):
+        if program_id == -1:
+            self.dispatch_full_stop()
+            self.one_shot_program = None
+            return
         program = self.programs.get(program_id, None)
         if program is None:
             return
@@ -115,12 +128,29 @@ class Controller(object):
         self.logger.info("Stopping program: %d", program_id)
         self.dispatch_full_stop()
     def start_program(self, program_id, now):
-        program = self.programs.get(program_id, None)
+        if program_id == -1:
+            program = self.one_shot_program
+        else:
+            program = self.programs.get(program_id, None)
         if program is None:
             return
         program["in_program"] = True
         self.logger.info("Starting program: %d", program_id)
         self.advance_program(program_id, now)
+    def start_one_shot_program(self, program_id):
+        # we clone the original program
+        original_program = self.programs.get(program_id, None)
+        if original_program is None:
+            return
+        new_program = deepcopy(original_program)
+        new_program["pid"] = -1
+        new_now = make_now() # We start right away with a configurable delay
+        new_now = new_now + 2 #Need to make this configurable
+        new_program["time_of_day"] = new_now
+        _prepare_program(new_program) # reset the program
+        if not self.one_shot_program is None:
+            self.stop_program(-1)
+        self.one_shot_program = new_program
     def is_station_available(self, stid):
         master = self.settings.master_settings
         station_list = master[controller_settings.STATION_LIST_KEY]
@@ -131,7 +161,10 @@ class Controller(object):
         self.logger.debug("Station %d is wired: %s", stid, str(wired))
         return wired
     def advance_program(self, program_id, now):
-        program = self.programs.get(program_id, None)
+        if program_id == -1:
+            program = self.one_shot_program
+        else:
+            program = self.programs.get(program_id, None)
         if program is None:
             return
         clock = now["seconds_from_midnight"]
@@ -205,7 +238,7 @@ class Controller(object):
         # This is our main function. Should be called from some sort of loop
         # 1. We build now (year,month,day,day_of_week,hour,minute,second,seconds_from_midnight)
         # 2. We find any running programs
-        # 3. Loop over the programs
+        # 3. Loop over the programs (including the one_shot_program)
         # 3.a If the program is expired, stop it
         # 3.b If a program is live, possibly advance its stations
         # 3.c If a new program is up, start it
