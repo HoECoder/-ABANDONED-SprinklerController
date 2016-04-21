@@ -10,8 +10,8 @@ def monkey_program(program, time_delta=10):
     n = make_now()
     even_odd = {1 : "odd",
                 0 : "even"}[n["day"] % 2]
-    program["interval"] = {"type" : even_odd}
-    program["time_of_day"] = n["seconds_from_midnight"] + time_delta
+    program[controller_settings.INTERVAL_KEY] = {"type" : even_odd}
+    program[controller_settings.TIME_OF_DAY_KEY] = n["seconds_from_midnight"] + time_delta
 
 def make_now():
     # We build now (year,month,day,day_of_week,hour,minute,second,seconds_from_midnight)
@@ -36,8 +36,8 @@ def make_now():
     return n
 
 def within_program_time(program, clock):
-    start_time = program["time_of_day"]
-    duration = program["total_run_time"]
+    start_time = program[controller_settings.TIME_OF_DAY_KEY]
+    duration = program[controller_settings.TOTAL_RUN_TIME_KEY]
     end_time = start_time+duration
     return start_time <= clock and clock < end_time
 
@@ -46,7 +46,7 @@ def is_program_run_day(program, now):
     # now has fields "year", "month", "day", "day_of_week", "hour", "minute", "second", "seconds_from_midnight"
     if program is None:
         return False #should throw an error here
-    interval = program["interval"]
+    interval = program[controller_settings.INTERVAL_KEY]
     interval_type = interval["type"]
     if interval_type in ["even", "odd"]: # Run on even or odd days
         day = now["day"]
@@ -69,14 +69,14 @@ def is_program_run_day(program, now):
 
 def _prepare_program(program):
     total_run_time = 0
-    for sd in program["station_duration"]:
-        tod = program["time_of_day"]
-        station_run = sd["duration"]
+    for sd in program[controller_settings.STATION_DURATION_KEY]:
+        tod = program[controller_settings.TIME_OF_DAY_KEY]
+        station_run = sd[controller_settings.DURATION_KEY]
         sd["start_time"] = total_run_time + tod
         total_run_time = total_run_time + station_run
         sd["end_time"] = total_run_time + tod
         #sd["running"] = False
-    program["total_run_time"] = total_run_time
+    program[controller_settings.TOTAL_RUN_TIME_KEY] = total_run_time
     return program
 
 class Controller(object):
@@ -106,7 +106,7 @@ class Controller(object):
         running_programs = list()
         clock = now["seconds_from_midnight"]
         for program in self.programs.values():
-            if program["in_program"]: # Grab a program that may already be running
+            if program[controller_settings.IN_PROGRAM_KEY]: # Grab a program that may already be running
                 running_programs.append(program)
                 # Check if we should expire this program
                 if not within_program_time(program, clock):
@@ -130,10 +130,10 @@ class Controller(object):
         program = self.programs.get(program_id, None)
         if program is None:
             return
-        program["in_program"] = False
+        program[controller_settings.IN_PROGRAM_KEY] = False
         program.pop("expire", None)
-        for station in program["station_duration"]:
-            station["in_station"] = False
+        for station in program[controller_settings.STATION_DURATION_KEY]:
+            station[controller_settings.IN_STATION_KEY] = False
         self.logger.info("Stopping program: %d", program_id)
         self.dispatch_full_stop()
     def start_program(self, program_id, now):
@@ -143,7 +143,7 @@ class Controller(object):
             program = self.programs.get(program_id, None)
         if program is None:
             return
-        program["in_program"] = True
+        program[controller_settings.IN_PROGRAM_KEY] = True
         self.logger.info("Starting program: %d", program_id)
         self.advance_program(program_id, now)
     def add_one_shot_program(self, program_id):
@@ -152,20 +152,20 @@ class Controller(object):
         if original_program is None:
             return
         new_program = deepcopy(original_program)
-        new_program["pid"] = -1
+        new_program[controller_settings.PROGRAM_ID_KEY] = -1
         new_now = make_now() # We start right away with a configurable delay
         new_now = new_now + 2 #Need to make this configurable
-        new_program["time_of_day"] = new_now
+        new_program[controller_settings.TIME_OF_DAY_KEY] = new_now
         _prepare_program(new_program) # reset the program
         if not self.one_shot_program is None:
             self.stop_program(-1)
         self.one_shot_program = new_program
-    def make_single_station_program(self, station_id, duration):
+    def add_single_station_program(self, station_id, duration):
         program = deepcopy(controller_settings.station_template)
         sd = deepcopy(controller_settings.station_duration_template)
-        program["station_duration"].append(sd)
-        sd["stid"] = station_id
-        sd["duration"] = duration
+        program[controller_settings.STATION_DURATION_KEY].append(sd)
+        sd[controller_settings.STATION_ID_KEY] = station_id
+        sd[controller_settings.DURATION_KEY] = duration
         monkey_program(program, time_delta=2)
         if not self.one_shot_program is None:
             self.stop_program(-1)
@@ -187,7 +187,7 @@ class Controller(object):
         if program is None:
             return
         clock = now["seconds_from_midnight"]
-        start_time = program["time_of_day"]
+        start_time = program[controller_settings.TIME_OF_DAY_KEY]
         elapsed_time = clock - start_time
         #run_length = 0
         stop_stations = list()
@@ -198,11 +198,11 @@ class Controller(object):
                           elapsed_time)
         # We go through all the stations in the program
         # We determine who needs to start and stop
-        for station in program["station_duration"]:
+        for station in program[controller_settings.STATION_DURATION_KEY]:
             station_start = station["start_time"]
             station_stop = station["end_time"]
-            running = station["in_station"]
-            stid = station["stid"]
+            running = station[controller_settings.IN_STATION_KEY]
+            stid = station[controller_settings.STATION_ID_KEY]
             self.logger.debug("Station stid:%d, start %d, stop %d, running %s",
                               stid,
                               station_start,
@@ -213,14 +213,14 @@ class Controller(object):
                     # Fire up the station
                     self.logger.debug("Fire up the station: %d", stid)
                     start_stations.append(stid)
-                    station["in_station"] = True
+                    station[controller_settings.IN_STATION_KEY] = True
                 else:
                     self.logger.debug("Station is already running: %d", stid)
                     #Otherwise we sit patiently. Latching relays
             else: #Station is old
                 if running: # We have to stop this guy first
                     stop_stations.append(stid)
-                    station["in_station"] = False
+                    station[controller_settings.IN_STATION_KEY] = False
                     self.logger.debug("Stopping station: %d", stid)
                 else:
                     self.logger.debug("Station was not running: %d", stid)
@@ -277,8 +277,8 @@ class Controller(object):
         for program in running_programs:
             # 3.a Expire the expired programs
             expired = program.get("expire", False)
-            in_program = program.get("in_program", None)
-            pid = program["pid"]
+            in_program = program.get(controller_settings.IN_PROGRAM_KEY, None)
+            pid = program[controller_settings.PROGRAM_ID_KEY]
             if expired:
                 self.logger.info("Expiring progam: %d", pid)
                 self.stop_program(pid)

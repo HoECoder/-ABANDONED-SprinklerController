@@ -115,31 +115,31 @@ STATION_ID_KEY = "stid"
 DURATION_KEY = "duration"
 IN_STATION_KEY = "in_station"
 
-program_schema = {"pid" : {"type":"integer"},
-                  "time_of_day" : {"type":"integer",
-                                   "min":0},
-                  "interval" : {"type":"dict",
-                                "validator":validate_interval},
-                  "in_program" : {"type":"boolean"},
-                  "total_run_time" : {"type" : "integer",
-                                      "min" : 0},
-                  "station_duration" : {"type" : "list",
-                                        "schema" : {"type":"dict",
-                                                    "schema":{"stid" : {"type":"integer",
-                                                                        "min":0},
-                                                              "duration" : {"type":"integer",
-                                                                            "min":0},
-                                                              "in_station": {"type":"boolean"}}}}}
+program_schema = {PROGRAM_ID_KEY : {"type":"integer"},
+                  TIME_OF_DAY_KEY : {"type":"integer",
+                                     "min":0},
+                  INTERVAL_KEY : {"type":"dict",
+                                  "validator":validate_interval},
+                  IN_PROGRAM_KEY : {"type":"boolean"},
+                  TOTAL_RUN_TIME_KEY : {"type" : "integer",
+                                        "min" : 0},
+                  STATION_DURATION_KEY : {"type" : "list",
+                                          "schema" : {"type":"dict",
+                                                      "schema":{STATION_ID_KEY : {"type":"integer",
+                                                                                  "min":0},
+                                                                DURATION_KEY : {"type":"integer",
+                                                                                "min":0},
+                                                                IN_STATION_KEY : {"type":"boolean"}}}}}
 
-station_template = {"pid" : -1,
-                              "time_of_day" : 0,
-                              "interval" : "even",
-                              "in_program":False,
-                              "total_run_time":0,
-                              "station_duration" : list()}
-station_duration_template = {"stid" : -1,
-                                            "duration" : 0,
-                                            "in_station" : False}
+station_template = {PROGRAM_ID_KEY : -1,
+                    TIME_OF_DAY_KEY : 0,
+                    INTERVAL_KEY : "even",
+                    IN_PROGRAM_KEY:False,
+                    TOTAL_RUN_TIME_KEY:0,
+                    STATION_DURATION_KEY : list()}
+station_duration_template = {STATION_ID_KEY : -1,
+                             DURATION_KEY : 0,
+                             IN_STATION_KEY : False}
 
 def _load(filename, validator):
     try:
