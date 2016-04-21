@@ -105,6 +105,16 @@ def validate_interval(field, value, error):
     elif not(typ in ["even", "odd"]):
         error(field, "Interval type must be 'even','odd','day_of_week'")
 
+PROGRAM_ID_KEY = "pid"
+TIME_OF_DAY_KEY = "time_of_day"
+INTERVAL_KEY = "interval"
+IN_PROGRAM_KEY = "in_program"
+TOTAL_RUN_TIME_KEY = "total_run_time"
+STATION_DURATION_KEY = "station_duration"
+STATION_ID_KEY = "stid"
+DURATION_KEY = "duration"
+IN_STATION_KEY = "in_station"
+
 program_schema = {"pid" : {"type":"integer"},
                   "time_of_day" : {"type":"integer",
                                    "min":0},
@@ -121,6 +131,15 @@ program_schema = {"pid" : {"type":"integer"},
                                                                             "min":0},
                                                               "in_station": {"type":"boolean"}}}}}
 
+station_template = {"pid" : -1,
+                              "time_of_day" : 0,
+                              "interval" : "even",
+                              "in_program":False,
+                              "total_run_time":0,
+                              "station_duration" : list()}
+station_duration_template = {"stid" : -1,
+                                            "duration" : 0,
+                                            "in_station" : False}
 
 def _load(filename, validator):
     try:

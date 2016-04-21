@@ -6,6 +6,13 @@ from dispatchers import TestDispatcher
 
 interval_types = ["even", "odd", "day_of_week"]
 
+def monkey_program(program, time_delta=10):
+    n = make_now()
+    even_odd = {1 : "odd",
+                0 : "even"}[n["day"] % 2]
+    program["interval"] = {"type" : even_odd}
+    program["time_of_day"] = n["seconds_from_midnight"] + time_delta
+
 def make_now():
     # We build now (year,month,day,day_of_week,hour,minute,second,seconds_from_midnight)
     current_time = time.localtime()
@@ -71,7 +78,7 @@ def _prepare_program(program):
         #sd["running"] = False
     program["total_run_time"] = total_run_time
     return program
-    
+
 class Controller(object):
     def __init__(self, dispatcher_class=TestDispatcher, settings=None):
         self.logger = logging.getLogger(__name__)
@@ -83,11 +90,13 @@ class Controller(object):
         self.settings.get_programs()
         self.programs = self.settings.programs
         self.tickover = 0
+        # Class to buffer us from the device. Either this is real HW or a dummy that just logs
         self.dispatcher = dispatcher_class()
         #Set full stop pattern
         total_stations = self.settings.master_settings[controller_settings.STATIONS_AVAIL_KEY]
         self.full_stop_pattern = [0 for x in xrange(total_stations)]
         self.master_pattern = list(self.full_stop_pattern)
+        # One shot program is used to either run a full program or just a station
         self.one_shot_program = None
     def prepare_programs(self):
         for program in self.programs.values():
@@ -137,7 +146,7 @@ class Controller(object):
         program["in_program"] = True
         self.logger.info("Starting program: %d", program_id)
         self.advance_program(program_id, now)
-    def start_one_shot_program(self, program_id):
+    def add_one_shot_program(self, program_id):
         # we clone the original program
         original_program = self.programs.get(program_id, None)
         if original_program is None:
@@ -151,13 +160,23 @@ class Controller(object):
         if not self.one_shot_program is None:
             self.stop_program(-1)
         self.one_shot_program = new_program
+    def make_single_station_program(self, station_id, duration):
+        program = deepcopy(controller_settings.station_template)
+        sd = deepcopy(controller_settings.station_duration_template)
+        program["station_duration"].append(sd)
+        sd["stid"] = station_id
+        sd["duration"] = duration
+        monkey_program(program, time_delta=2)
+        if not self.one_shot_program is None:
+            self.stop_program(-1)
+        self.one_shot_program = program
     def is_station_available(self, stid):
         master = self.settings.master_settings
         station_list = master[controller_settings.STATION_LIST_KEY]
         station = station_list.get(stid, None)
         if station is None:
             return False
-        wired = station[controller_settings.WIRED_KEY] 
+        wired = station[controller_settings.WIRED_KEY]
         self.logger.debug("Station %d is wired: %s", stid, str(wired))
         return wired
     def advance_program(self, program_id, now):
@@ -226,9 +245,9 @@ class Controller(object):
         self.logger.debug("Starting stations: %s", str(stations))
         for station in stations:
             st_avail = self.is_station_available(station)
-            self.logger.debug("Station %d is enabled: %s",station,str(st_avail))
+            self.logger.debug("Station %d is enabled: %s", station, str(st_avail))
             if st_avail:
-                self.logger.debug("Station %d (%d) on",station,station-1)
+                self.logger.debug("Station %d (%d) on", station, station-1)
                 self.master_pattern[station-1] = 1
         if len(stations) > 0:
             self.logger.debug("Pattern : %s", str(self.master_pattern))

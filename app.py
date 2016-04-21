@@ -19,14 +19,7 @@ fh = logging.handlers.RotatingFileHandler(log_filename,
                                           backupCount=15)
 logging.getLogger('').addHandler(fh)
 
-from controller import Controller, make_now
-
-def monkey_program(program, time_delta=10):
-    n = make_now()
-    even_odd = {1 : "odd",
-                0 : "even"}[n["day"] % 2]
-    program["interval"] = {"type" : even_odd}
-    program["time_of_day"] = n["seconds_from_midnight"] + time_delta
+from controller import Controller, make_now,monkey_program
 
 if __name__ == "__main__":
     now = make_now()
