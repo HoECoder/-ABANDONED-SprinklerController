@@ -239,4 +239,5 @@ class Controller(object):
         # Push out settings
         if self.tickover % 5 == 0:
             self.settings.dump_master()
+            self.settings.dump_all_programs()
         self.tickover = self.tickover + 1
