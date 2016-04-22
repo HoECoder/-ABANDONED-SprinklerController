@@ -67,6 +67,21 @@ def is_program_run_day(program, now):
         return False # should throw another error here
     return False
 
+def asses_program(program, clock, now):
+    do_append = False
+    if program[controller_settings.IN_PROGRAM_KEY]: # Grab a program that may already be running
+        do_append = True
+        # Check if we should expire this program
+        if not within_program_time(program, clock):
+            program["expire"] = True # We should expire this program
+        if not is_program_run_day(program, now):
+            program["expire"] = True # On the chance we got suspended and the day changed on us
+    else: # Grab programs that should be running
+        if is_program_run_day(program, now): # We look if it is a run day
+            if within_program_time(program, clock): # We should run this program
+                do_append = True
+    return do_append
+
 def _prepare_program(program):
     total_run_time = 0
     for sd in program[controller_settings.STATION_DURATION_KEY]:
@@ -106,24 +121,19 @@ class Controller(object):
         running_programs = list()
         clock = now["seconds_from_midnight"]
         for program in self.programs.values():
-            if program[controller_settings.IN_PROGRAM_KEY]: # Grab a program that may already be running
+            do_append = asses_program(program, clock, now)
+            if do_append:
                 running_programs.append(program)
-                # Check if we should expire this program
-                if not within_program_time(program, clock):
-                    program["expire"] = True # We should expire this program
-                if not is_program_run_day(program, now):
-                    program["expire"] = True # On the chance we got suspended and the day changed on us
-            else: # Grab programs that should be running
-                if is_program_run_day(program, now): # We look if it is a run day
-                    if within_program_time(program, clock): # We should run this program
-                        running_programs.append(program)
         # We allow users to run a single program once
         if not self.one_shot_program is None:
-            running_program.append(self.one_shot_program)
+            do_append = asses_program(self.one_shot_program, clock, now)
+            if do_append:
+                running_programs.append(self.one_shot_program)
         return running_programs
 
     def stop_program(self, program_id):
         if program_id == -1:
+            self.logger.info("Stopping one shot program")
             self.dispatch_full_stop()
             self.one_shot_program = None
             return
@@ -153,9 +163,7 @@ class Controller(object):
             return
         new_program = deepcopy(original_program)
         new_program[controller_settings.PROGRAM_ID_KEY] = -1
-        new_now = make_now() # We start right away with a configurable delay
-        new_now = new_now + 2 #Need to make this configurable
-        new_program[controller_settings.TIME_OF_DAY_KEY] = new_now
+        monkey_program(new_program, time_delta=2)
         _prepare_program(new_program) # reset the program
         if not self.one_shot_program is None:
             self.stop_program(-1)
@@ -167,6 +175,7 @@ class Controller(object):
         sd[controller_settings.STATION_ID_KEY] = station_id
         sd[controller_settings.DURATION_KEY] = duration
         monkey_program(program, time_delta=2)
+        _prepare_program(program)
         if not self.one_shot_program is None:
             self.stop_program(-1)
         self.one_shot_program = program
