@@ -170,6 +170,20 @@ def _dump(filename, validator, settings):
     except IOError:
         return False
 
+def find_key_gap(l, start=1):
+    if len(l) == 0:
+        return start
+    end = max(l)
+    check_set = set(range(start, end+1))
+    l = set(l)
+    diff_set = check_set.difference(l)
+    
+    if len(diff_set) == 0:
+        return end+1
+    else:
+        return min(diff_set)
+    
+
 class ControllerSettings(object):
     def __init__(self, settings_base=settings_base_dir):
         self.settings_base = settings_base
@@ -212,6 +226,11 @@ class ControllerSettings(object):
             return True
         except OSError:
             return False
+    def add_new_program(self, program):
+        new_id = find_key_gap(self.programs.keys())
+        program[PROGRAM_ID_KEY] = new_id
+        self.programs[new_id] = program
+        self.dump_program(new_id)
     def load_master(self):
         config = ConfigParser.ConfigParser()
         fs = config.read(self.master_file)

@@ -179,6 +179,8 @@ class Controller(object):
         if not self.one_shot_program is None:
             self.stop_program(-1)
         self.one_shot_program = program
+    def add_new_program(self, program):
+        program[controller_settings.PROGRAM_ID_KEY] = -2
     def is_station_available(self, stid):
         master = self.settings.master_settings
         station_list = master[controller_settings.STATION_LIST_KEY]
