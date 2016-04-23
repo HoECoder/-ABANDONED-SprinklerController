@@ -184,7 +184,7 @@ class Controller(object):
         if self.settings.add_new_program(program):
             _prepare_program(program)
             self.programs = self.settings.programs
-            
+            # TODO alert on the return value
     def is_station_available(self, stid):
         master = self.settings.master_settings
         station_list = master[controller_settings.STATION_LIST_KEY]
