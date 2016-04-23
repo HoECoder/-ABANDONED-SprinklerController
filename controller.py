@@ -181,6 +181,10 @@ class Controller(object):
         self.one_shot_program = program
     def add_new_program(self, program):
         program[controller_settings.PROGRAM_ID_KEY] = -2
+        if self.settings.add_new_program(program):
+            _prepare_program(program)
+            self.programs = self.settings.programs
+            
     def is_station_available(self, stid):
         master = self.settings.master_settings
         station_list = master[controller_settings.STATION_LIST_KEY]

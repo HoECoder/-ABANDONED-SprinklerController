@@ -230,7 +230,7 @@ class ControllerSettings(object):
         new_id = find_key_gap(self.programs.keys())
         program[PROGRAM_ID_KEY] = new_id
         self.programs[new_id] = program
-        self.dump_program(new_id)
+        return self.dump_program(new_id)
     def load_master(self):
         config = ConfigParser.ConfigParser()
         fs = config.read(self.master_file)
