@@ -47,19 +47,19 @@ def is_program_run_day(program, now):
     if program is None:
         return False #should throw an error here
     interval = program[controller_settings.INTERVAL_KEY]
-    interval_type = interval["type"]
-    if interval_type in ["even", "odd"]: # Run on even or odd days
+    interval_type = interval[controller_settings.INTERVAL_TYPE_KEY]
+    if interval_type in controller_settings.odd_even_types: # Run on even or odd days
         day = now["day"]
         even_odd = day % 2 == 0
-        if interval_type == "even":
+        if interval_type == controller_settings.EVEN_INTERVAL_TYPE:
             return even_odd
         else:
             return not even_odd
-    elif interval_type == "day_of_week":
+    elif interval_type == controller_settings.DOW_INTERVAL_TYPE:
         # Day of week is a number in the set (0-6) (i.e. Mon-Sun)
         # We see if this is in the intervals list of days
         wd = now["day_of_week"]
-        run_days = interval.get("run_days", None)
+        run_days = interval.get(controller_settings.RUN_DAYS_KEY, None)
         if run_days is None:
             return False # We should throw an error here too
         return wd in run_days

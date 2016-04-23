@@ -163,7 +163,7 @@ def _load(filename, validator):
 def _dump(filename, validator, settings):
     valid = validator.validate(settings)
     if not valid:
-        print "invalid"
+        print "invalid" # TODO : This needs to be a logger statement
         print validator.errors
         return False
 
