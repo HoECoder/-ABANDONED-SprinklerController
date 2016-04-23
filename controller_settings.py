@@ -133,7 +133,7 @@ program_schema = {PROGRAM_ID_KEY : {"type":"integer"},
 
 station_template = {PROGRAM_ID_KEY : -1,
                     TIME_OF_DAY_KEY : 0,
-                    INTERVAL_KEY : "even",
+                    INTERVAL_KEY : {"type" : "even"},
                     IN_PROGRAM_KEY:False,
                     TOTAL_RUN_TIME_KEY:0,
                     STATION_DURATION_KEY : list()}
