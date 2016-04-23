@@ -44,12 +44,11 @@ if __name__ == "__main__":
     i = 0
     controller.add_single_station_program(6, 7)
     pprint.pprint(controller.one_shot_program)
-    
+
     program = deepcopy(controller_settings.station_template)
     sd = deepcopy(controller_settings.station_duration_template)
     program[controller_settings.STATION_DURATION_KEY].append(sd)
     sd[controller_settings.STATION_ID_KEY] = 3
     sd[controller_settings.DURATION_KEY] = 500
-    
+
     controller.add_new_program(program)
-    

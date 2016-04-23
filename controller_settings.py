@@ -30,6 +30,21 @@ WIRED_KEY = 'wired'
 IGNORE_RAIN_KEY = 'ignore rain sensor'
 NEED_MASTER_KEY = 'need master'
 STATION_LIST_KEY = 'station list'
+PROGRAM_ID_KEY = "pid"
+TIME_OF_DAY_KEY = "time_of_day"
+INTERVAL_KEY = "interval"
+INTERVAL_TYPE_KEY = "type"
+RUN_DAYS_KEY = "run_days"
+IN_PROGRAM_KEY = "in_program"
+TOTAL_RUN_TIME_KEY = "total_run_time"
+STATION_DURATION_KEY = "station_duration"
+STATION_ID_KEY = "stid"
+DURATION_KEY = "duration"
+IN_STATION_KEY = "in_station"
+
+EVEN_INTERVAL_TYPE = "even"
+ODD_INTERVAL_TYPE = "odd"
+DOW_INTERVAL_TYPE = "day_of_week"
 
 boolean_conf_keys = [RAIN_SENSOR_KEY,
                      INVERT_RAIN_SENSOR_KEY,
@@ -37,7 +52,6 @@ boolean_conf_keys = [RAIN_SENSOR_KEY,
                      IGNORE_RAIN_KEY,
                      NEED_MASTER_KEY]
 int_conf_keys = [STATIONS_AVAIL_KEY]
-                       
 
 def make_test_settings():
     __station_template = OrderedDict()
@@ -90,21 +104,7 @@ def make_test_settings():
 default_master = make_test_settings()
 default_station_dict = default_master[STATION_LIST_KEY]
 
-PROGRAM_ID_KEY = "pid"
-TIME_OF_DAY_KEY = "time_of_day"
-INTERVAL_KEY = "interval"
-INTERVAL_TYPE_KEY = "type"
-RUN_DAYS_KEY = "run_days"
-IN_PROGRAM_KEY = "in_program"
-TOTAL_RUN_TIME_KEY = "total_run_time"
-STATION_DURATION_KEY = "station_duration"
-STATION_ID_KEY = "stid"
-DURATION_KEY = "duration"
-IN_STATION_KEY = "in_station"
 
-EVEN_INTERVAL_TYPE = "even"
-ODD_INTERVAL_TYPE = "odd"
-DOW_INTERVAL_TYPE = "day_of_week"
 
 interval_types = [EVEN_INTERVAL_TYPE, ODD_INTERVAL_TYPE, DOW_INTERVAL_TYPE]
 interval_types_s = str(interval_types)
@@ -185,12 +185,12 @@ def find_key_gap(l, start=1):
     check_set = set(range(start, end+1))
     l = set(l)
     diff_set = check_set.difference(l)
-    
+
     if len(diff_set) == 0:
         return end+1
     else:
         return min(diff_set)
-    
+
 
 class ControllerSettings(object):
     def __init__(self, settings_base=settings_base_dir):
