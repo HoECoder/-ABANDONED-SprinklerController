@@ -90,30 +90,38 @@ def make_test_settings():
 default_master = make_test_settings()
 default_station_dict = default_master[STATION_LIST_KEY]
 
-interval_types = ["even", "odd", "day_of_week"]
-interval_types_s = str(interval_types)
-def validate_interval(field, value, error):
-    typ = value["type"]
-    if typ == "day_of_week":
-        days = value.get("run_days", None)
-        if days is None:
-            error(field, "Day of Week Interval must contain a list of days")
-        ma = max(days)
-        mi = min(days)
-        if mi < 0 or ma > 6:
-            error(field, "Day of Week Interval must have a list of days Sun - Sat")
-    elif not(typ in ["even", "odd"]):
-        error(field, "Interval type must be 'even','odd','day_of_week'")
-
 PROGRAM_ID_KEY = "pid"
 TIME_OF_DAY_KEY = "time_of_day"
 INTERVAL_KEY = "interval"
+INTERVAL_TYPE_KEY = "type"
+RUN_DAYS_KEY = "run_days"
 IN_PROGRAM_KEY = "in_program"
 TOTAL_RUN_TIME_KEY = "total_run_time"
 STATION_DURATION_KEY = "station_duration"
 STATION_ID_KEY = "stid"
 DURATION_KEY = "duration"
 IN_STATION_KEY = "in_station"
+
+EVEN_INTERVAL_TYPE = "even"
+ODD_INTERVAL_TYPE = "odd"
+DOW_INTERVAL_TYPE = "day_of_week"
+
+interval_types = [EVEN_INTERVAL_TYPE, ODD_INTERVAL_TYPE, DOW_INTERVAL_TYPE]
+interval_types_s = str(interval_types)
+odd_even_types = [EVEN_INTERVAL_TYPE, ODD_INTERVAL_TYPE]
+
+def validate_interval(field, value, error):
+    typ = value[INTERVAL_TYPE_KEY]
+    if typ == DOW_INTERVAL_TYPE:
+        days = value.get(RUN_DAYS_KEY, None)
+        if days is None:
+            error(field, "Day of Week Interval must contain a list of days")
+        ma = max(days)
+        mi = min(days)
+        if mi < 0 or ma > 6:
+            error(field, "Day of Week Interval must have a list of days Sun - Sat")
+    elif not(typ in odd_even_types):
+        error(field, "Interval type must be 'even','odd','day_of_week'")
 
 program_schema = {PROGRAM_ID_KEY : {"type":"integer"},
                   TIME_OF_DAY_KEY : {"type":"integer",
@@ -133,7 +141,7 @@ program_schema = {PROGRAM_ID_KEY : {"type":"integer"},
 
 station_template = {PROGRAM_ID_KEY : -1,
                     TIME_OF_DAY_KEY : 0,
-                    INTERVAL_KEY : {"type" : "even"},
+                    INTERVAL_KEY : {INTERVAL_TYPE_KEY: EVEN_INTERVAL_TYPE},
                     IN_PROGRAM_KEY:False,
                     TOTAL_RUN_TIME_KEY:0,
                     STATION_DURATION_KEY : list()}
