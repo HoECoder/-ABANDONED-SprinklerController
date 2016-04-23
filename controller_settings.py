@@ -120,7 +120,7 @@ def validate_interval(field, value, error):
         mi = min(days)
         if mi < 0 or ma > 6:
             error(field, "Day of Week Interval must have a list of days Sun - Sat")
-    elif not(typ in odd_even_types):
+    elif not typ in odd_even_types:
         error(field, "Interval type must be 'even','odd','day_of_week'")
 
 program_schema = {PROGRAM_ID_KEY : {"type":"integer"},
@@ -260,9 +260,9 @@ class ControllerSettings(object):
             __od = OrderedDict()
             for option in options:
                 if option in boolean_conf_keys:
-                    __od[option] = config.getboolean(section,option)
+                    __od[option] = config.getboolean(section, option)
                 elif option in int_conf_keys:
-                    __od[option] = config.getint(section,option)
+                    __od[option] = config.getint(section, option)
                 else:
                     __od[option] = config.get(section, option)
             station_list[station_id] = __od
